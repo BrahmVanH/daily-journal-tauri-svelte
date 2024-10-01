@@ -14,10 +14,10 @@ tauri-build = { version = "1", features = [] }
 tauri = { version = "1.8.0", features = ["shell-open"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-rusqlite = { version = "0.32.1", feature = ["bundled"] }
 chrono = "0.4.38"
 devtools = "0.3.3"
 dotenvy = "0.15.7"
+thiserror = "1.0.64"
 
 [features]
 # This feature is used for production builds or when a dev server is not specified, DO NOT REMOVE!!

@@ -3,3 +3,56 @@
   --secondary-color: #57779d;
   --border-rad: 10px;
 }
+
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+button {
+  box-shadow: none;
+  border: none;
+  
+}
+
+body {
+  margin: 0;
+  display: flex;
+  place-items: center;
+  min-width: 320px;
+  height: min-content;
+  min-height: 100vh;
+	background: linear-gradient(#c7a96e, #57779d);
+
+}
+
+.loader-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  width: 100%;
+
+}
+
+.loader {
+  width: 90px;
+  height: 14px;
+  --c:#fff 92%,#0000;
+  background: 
+    radial-gradient(circle 7px at bottom,var(--c)) 0 0,
+    radial-gradient(circle 7px at top   ,var(--c)) 0 100%;
+  background-size: calc(100%/4) 50%;
+  background-repeat: repeat-x;
+  animation: l11 1s infinite;
+}
+@keyframes l11 {
+    80%, 100% {background-position: calc(100%/3) 0,calc(100%/-3) 100%}
+}
