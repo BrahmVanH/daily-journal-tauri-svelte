@@ -18,6 +18,8 @@ chrono = "0.4.38"
 devtools = "0.3.3"
 dotenvy = "0.15.7"
 thiserror = "1.0.64"
+sqlx = {version = "0.8.2", features = ["runtime-tokio-native-tls", "sqlite"]}
+tokio = {version = "1.40.0", features = ["macros", "full", "rt-multi-thread"]}
 
 [features]
 # This feature is used for production builds or when a dev server is not specified, DO NOT REMOVE!!
