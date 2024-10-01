@@ -15,7 +15,8 @@ use tauri::App;
 
 use crate::models::{ NewJournalEntry, NewPersonalMetrics };
 
-use crate::ApplicationError;
+use crate::{ ApplicationError, MigrateErr, VarErr };
+use crate::SqlxErr;
 
 #[tokio::main]
 pub async fn initialize_database(db_url: &str) -> Result<(), ApplicationError> {
@@ -23,7 +24,9 @@ pub async fn initialize_database(db_url: &str) -> Result<(), ApplicationError> {
         println!("Creating database {}", &db_url);
         match Sqlite::create_database(&db_url).await {
             Ok(_) => println!("Create db success"),
-            Err(e) => panic!("error: {}", e),
+            Err(e) => {
+                return Err(ApplicationError::SqlxErr(SqlxErr(e)));
+            }
         }
     } else {
         println!("Database already exists");
@@ -36,7 +39,7 @@ pub async fn connect_db(db_url: &str) -> Result<SqlitePool, ApplicationError> {
     match SqlitePool::connect(&db_url).await {
         Ok(db) => Ok(db),
         Err(e) => {
-            return Err(ApplicationError::SqlxErr(e));
+            return Err(ApplicationError::SqlxErr(SqlxErr(e)));
         }
     }
 }
@@ -50,7 +53,7 @@ pub async fn run_migrations(crate_dir: &str, db: SqlitePool) -> Result<(), Appli
     {
         Ok(_) => Ok(()),
         Err(e) => {
-            return Err(ApplicationError::MigrationErr(e));
+            return Err(ApplicationError::MigrationErr(MigrateErr(e)));
         }
     };
 
@@ -62,11 +65,11 @@ pub async fn run_migrations(crate_dir: &str, db: SqlitePool) -> Result<(), Appli
 pub async fn add_entry(
     personal_metrics: NewPersonalMetrics,
     journal_entry: NewJournalEntry
-) -> Result<(), ApplicationError> {
+) -> Result<String, ApplicationError> {
     let db_url = match std::env::var("DB_URL") {
         Ok(url) => url,
         Err(e) => {
-            return Err(ApplicationError::VarErr(e));
+            return Err(ApplicationError::VarErr(VarErr(e)));
         }
     };
 
@@ -80,7 +83,7 @@ pub async fn add_entry(
 
     add_personal_metric_entry(personal_metrics, &new_entry_id, &db).await?;
 
-    Ok(())
+    Ok(String::from("200"))
 }
 
 // This will insert journal entry portion of "whole entry", returns id of new entry to use
@@ -99,7 +102,7 @@ async fn add_journal_entry(
     {
         Ok(r) => r,
         Err(e) => {
-            return Err(ApplicationError::SqlxErr(e));
+            return Err(ApplicationError::SqlxErr(SqlxErr(e)));
         }
     };
 
@@ -132,7 +135,7 @@ async fn add_personal_metric_entry(
     {
         Ok(r) => r,
         Err(e) => {
-            return Err(ApplicationError::SqlxErr(e));
+            return Err(ApplicationError::SqlxErr(SqlxErr(e)));
         }
     };
 
