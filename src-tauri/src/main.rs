@@ -78,26 +78,37 @@ pub enum ApplicationError {
     #[error("Failed to get app data directory")]
     AppDataDirNotFound,
 }
-#[tokio::main]
-async fn main() -> Result<(), ApplicationError> {
+fn main() -> Result<(), ApplicationError> {
+    let _ = dotenv();
 
-     let db_url = match std::env::var("DB_URL") {
-        Ok(url) => url,
-        Err(e) => {
-            return Err(ApplicationError::VarErr(VarErr(e)));
-        }
-    };
-
-    initialize_database(&db_url).await?;
     match
         tauri::Builder
             ::default()
             .invoke_handler(tauri::generate_handler![database::add_entry])
+            .invoke_handler(tauri::generate_handler![database::run_migrations])
+            .setup(|_app| {
+                let db_url = match env::var("DB_URL") {
+                    Ok(url) => url,
+                    Err(e) => {
+                        return Err(Box::new(ApplicationError::VarErr(VarErr(e))) as Box<dyn std::error::Error>);
+                    }
+                };
+                tauri::async_runtime::block_on(async {
+                    match initialize_database(&db_url).await {
+                        Ok(_) => Ok(()),
+                        Err(e) => {
+                            return Err(Box::new(e) as Box<dyn std::error::Error>);
+                        }
+                    }
+                })
+            })
             .run(tauri::generate_context!())
     {
-        Ok(_) => Ok(()),
+        Ok(_) => (),
         Err(e) => {
             return Err(ApplicationError::TauriErr(TauriErr(e)));
         }
     }
+
+    Ok(())
 }

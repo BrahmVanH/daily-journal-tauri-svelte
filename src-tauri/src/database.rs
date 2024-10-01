@@ -4,21 +4,16 @@ use chrono::Utc;
 
 use sqlx::{
     migrate::MigrateDatabase,
-    migrate::Migrator,
     migrate::MigrateError,
     Sqlite,
     SqlitePool,
-    FromRow,
-    Row,
 };
-use tauri::App;
 
 use crate::models::{ NewJournalEntry, NewPersonalMetrics };
 
 use crate::{ ApplicationError, MigrateErr, VarErr };
 use crate::SqlxErr;
 
-#[tokio::main]
 pub async fn initialize_database(db_url: &str) -> Result<(), ApplicationError> {
     if !Sqlite::database_exists(&db_url).await.unwrap_or(false) {
         println!("Creating database {}", &db_url);
@@ -44,8 +39,32 @@ pub async fn connect_db(db_url: &str) -> Result<SqlitePool, ApplicationError> {
     }
 }
 
+#[tauri::command]
 // Takes in CARGO_MANIFEST_DIR env and sources existing migrations folder to run contained migrations
-pub async fn run_migrations(crate_dir: &str, db: SqlitePool) -> Result<(), ApplicationError> {
+pub async fn run_migrations() -> Result<(), ApplicationError> {
+    let _ = dotenv();
+
+    let crate_dir = match env::var("CARGO_MANIFEST_DIR") {
+        Ok(dir) => dir,
+        Err(e) => {
+            return Err(ApplicationError::VarErr(VarErr(e)));
+        }
+    };
+
+    let db_url = match env::var("DB_URL") {
+        Ok(url) => url,
+        Err(e) => {
+            return Err(ApplicationError::VarErr(VarErr(e)));
+        }
+    };
+
+    let db = match connect_db(&db_url).await {
+        Ok(pool) => pool,
+        Err(e) => {
+            return Err(e);
+        }
+    };
+
     let migrations = std::path::Path::new(&crate_dir).join("./migrations");
 
     let migration_results: Result<(), MigrateError> = match
@@ -66,7 +85,9 @@ pub async fn add_entry(
     personal_metrics: NewPersonalMetrics,
     journal_entry: NewJournalEntry
 ) -> Result<String, ApplicationError> {
-    let db_url = match std::env::var("DB_URL") {
+    let _ = dotenv();
+
+    let db_url = match env::var("DB_URL") {
         Ok(url) => url,
         Err(e) => {
             return Err(ApplicationError::VarErr(VarErr(e)));
