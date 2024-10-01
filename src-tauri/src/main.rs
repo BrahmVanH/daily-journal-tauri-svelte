@@ -16,8 +16,12 @@ pub enum ApplicationError {
     #[error("io error: {0}")] IoErr(std::io::Error),
     #[error("Tauri application error: {0}")] TauriErr(tauri::Error),
     #[error("sqlx error: {0}")] SqlxErr(sqlx::Error),
+    #[error("migration error: {0}")] MigrationErr(sqlx::migrate::MigrateError),
+
     #[error("Failed to get app data directory")]
     AppDataDirNotFound,
 }
 
 fn main() {}
+
+

@@ -1,0 +1,5 @@
+CREATE TABLE IF NOT EXISTS journal_entry (
+     id INTEGER PRIMARY KEY NOT NULL,
+     date TEXT NOT NULL,
+     text TEXT NOT NULL
+ )
